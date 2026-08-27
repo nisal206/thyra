@@ -24,6 +24,12 @@
       ],
       "outputs": []
     },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
     "link": {
       "dependsOn": [
         "^link"

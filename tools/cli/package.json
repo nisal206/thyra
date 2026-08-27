@@ -12,6 +12,7 @@
     "unlink": "bun unlink",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "clean": "rimraf dist .turbo"
   },
   "files": [

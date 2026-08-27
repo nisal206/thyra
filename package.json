@@ -16,6 +16,7 @@
     "unlink": "turbo run unlink",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "clean": "turbo run clean",
     "prepare": "husky",
     "check:latest-release": "bun run scripts/check-latest-release.ts",
