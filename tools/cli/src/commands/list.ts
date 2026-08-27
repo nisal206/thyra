@@ -14,9 +14,12 @@ export function runList(store: ConfigStore) {
 
   const rows = keys.map((key) => {
     const entry = all[key];
+    const description = entry.editor
+      ? `${color.dim(entry.path)}  ${color.dim(`(editor: ${entry.editor})`)}`
+      : color.dim(entry.path);
     return {
       Command: color.cyan(entry.alias || key),
-      Description: color.dim(entry.path),
+      Description: description,
     };
   });
 

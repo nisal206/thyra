@@ -11,8 +11,8 @@ export function runHelp(exitCode: number) {
 
   const rows = [
     {
-      Command: colorize("thyra config <name> <folder_path>"),
-      Description: "Save a folder path",
+      Command: colorize("thyra config <name> <folder_path> [-e | --editor <editor>]"),
+      Description: "Save a folder path (optionally pin a per-project editor)",
     },
     {
       Command: colorize("thyra import <directory>"),
@@ -20,15 +20,17 @@ export function runHelp(exitCode: number) {
     },
     {
       Command: colorize("thyra open <name> [-e | --editor <editor>]"),
-      Description: "Open folder in your editor (default: $EDITOR or 'code')",
+      Description: "Open folder in your editor (flag > project editor > $EDITOR)",
     },
     {
       Command: colorize("thyra cd <name>"),
       Description: "Open a new Terminal window at the saved folder",
     },
     {
-      Command: colorize("thyra update <name> <folder_path>"),
-      Description: "Update an existing saved path",
+      Command: colorize(
+        "thyra update <name> [folder_path] [--editor <editor> | --clear-editor]",
+      ),
+      Description: "Update an existing saved path or its per-project editor",
     },
     {
       Command: colorize("thyra remove <name> | --all | --force"),
@@ -54,7 +56,16 @@ export function runHelp(exitCode: number) {
     "# Open in editor",
   )}
   ${colorize("thyra open <name> -e <editor>")}       ${color.dim(
-    "# Open in <editor>",
+    "# Open in <editor> (overrides project + global)",
+  )}
+  ${colorize("thyra config <name> <folder_path> -e <editor>")} ${color.dim(
+    "# Save a path and pin its editor",
+  )}
+  ${colorize("thyra update <name> --editor <editor>")} ${color.dim(
+    "# Change a project's editor",
+  )}
+  ${colorize("thyra update <name> --clear-editor")}  ${color.dim(
+    "# Fall back to the global editor again",
   )}
   ${colorize("thyra cd <name>")}                     ${color.dim(
     "# Open a new Terminal window at the saved folder",
@@ -70,8 +81,14 @@ export function runHelp(exitCode: number) {
   )}
   ${colorize("thyra --version")}
 
+${color.bold(color.underline("Editor resolution (highest priority first):"))}
+  ${color.dim("1.")} ${colorize("-e | --editor <editor>")} ${color.dim("flag on 'thyra open'")}
+  ${color.dim("2.")} ${color.cyan("per-project editor")} ${color.dim("saved via 'thyra config' / 'thyra update'")}
+  ${color.dim("3.")} ${color.cyan("EDITOR")} ${color.dim("environment variable")}
+  ${color.dim('   falls back to "code" when none are set')}
+
 ${color.bold(color.underline("Environment:"))}
-  ${color.cyan("EDITOR")}  ${color.dim('Editor command (default: "code")')}
+  ${color.cyan("EDITOR")}  ${color.dim('Global editor command (default: "code")')}
 `,
   );
 
