@@ -18,6 +18,7 @@ A tiny CLI to bookmark project folders under short names and open them instantly
 - Open saved directories instantly from the terminal
 - Check the CLI version easily (`thyra version`)
 - Works with any editor (VS Code, WebStorm, Vim, Sublime Text, Emacs, etc.)
+- Per-project editor overrides with a `flag → project → global` resolution order
 - Stores configuration in your user directory
 - Cross-platform: macOS, Linux, Windows
 - Simple, fast, no fluff
@@ -62,7 +63,7 @@ thyra version
 ### Save a project folder
 
 ```bash
-thyra config <name> <path>
+thyra config <name> <path> [-e | --editor <editor>]
 ```
 
 **Examples**
@@ -70,7 +71,14 @@ thyra config <name> <path>
 ```bash
 thyra config blog ~/projects/personal-blog
 thyra config api /var/www/company/api
+
+# Pin a per-project editor at save time
+thyra config api /var/www/company/api --editor webstorm
 ```
+
+Pass `--editor <editor>` (or `-e <editor>`) to store an editor override for that
+project. `thyra open api` then uses `webstorm` instead of the global default. See
+[Editor Configuration](#editor-configuration) for the full resolution order.
 
 ### Import project folders from a directory
 
@@ -98,7 +106,9 @@ thyra open <name>
 thyra open blog
 ```
 
-This opens the saved path in your configured editor.
+This opens the saved path in your configured editor. The editor is resolved as
+`-e`/`--editor` flag → per-project editor → global `EDITOR` (see
+[Editor Configuration](#editor-configuration)).
 
 ### List all saved projects
 
@@ -130,15 +140,24 @@ This shows the currently installed version of **thyra**.
 ### Update a saved project
 
 ```bash
-thyra update <name> <path>
+thyra update <name> [path] [--editor <editor> | --clear-editor]
 ```
 
-Update the stored path for an existing alias. The folder must exist on disk.
+Update the stored path for an existing alias, its per-project editor, or both.
+When a `path` is given the folder must exist on disk. The `path` is optional when
+you only want to change the editor override.
 
-**Example**
+**Examples**
 
 ```bash
+# Change the stored path
 thyra update blog ~/projects/personal-blog-v2
+
+# Set (or change) the per-project editor
+thyra update blog --editor webstorm
+
+# Drop the override and fall back to the global editor
+thyra update blog --clear-editor
 ```
 
 ### Remove a saved project
@@ -175,16 +194,30 @@ thyra --help
 
 ## Editor Configuration
 
-By default, **thyra** uses **VS Code** (`code`) if it’s available.
+When you run `thyra open <name>`, thyra resolves which editor to launch using the
+following priority (highest first):
 
-To use a different editor, set the `EDITOR` environment variable:
+1. **`-e` / `--editor` flag** — `thyra open blog -e code` always wins, whatever
+   else is configured.
+2. **Per-project editor** — an editor saved for that specific project via
+   `thyra config <name> <path> --editor <editor>` or
+   `thyra update <name> --editor <editor>`.
+3. **Global `EDITOR`** — the `EDITOR` environment variable.
+
+If none of these are set, thyra falls back to **VS Code** (`code`).
 
 ```bash
-# one-off for current shell
-EDITOR=webstorm thyra open blog
+# 1. Flag — one-off override, beats project + global
+thyra open blog -e vim
 
-# or set it permanently (bash/zsh)
-export EDITOR=webstorm
+# 2. Per-project editor — persisted alongside the saved path
+thyra config api /var/www/company/api --editor webstorm
+thyra update api --editor pstorm     # change it later
+thyra update api --clear-editor      # remove it, fall back to global
+
+# 3. Global default — the EDITOR environment variable
+export EDITOR=webstorm               # permanent (bash/zsh)
+EDITOR=webstorm thyra open blog      # one-off for the current shell
 ```
 
 ### Common editor commands
@@ -215,12 +248,16 @@ setx EDITOR "webstorm"
 | macOS / Linux | `~/.config/thyra/thyra.json` |
 | Windows       | `%APPDATA%\thyra\thyra.json` |
 
-Each entry maps a **name** → **absolute path**.
+Each entry maps a **name** → **absolute path**, plus an optional per-project
+`editor`. Config files written by older versions (without the `editor` field)
+keep working unchanged — a missing `editor` simply means "no per-project
+override".
 
 When you run `thyra open <name>`:
 
 1. thyra reads the target path from the config
-2. thyra launches your editor with that directory
+2. thyra resolves the editor: `-e`/`--editor` flag → per-project `editor` → global `EDITOR` → `code`
+3. thyra launches that editor with the directory
 
 ---
 
