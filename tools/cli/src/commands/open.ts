@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 import color from "picocolors";
 
-import { ConfigStore } from "~/core";
+import { ConfigStore, resolveEditor } from "~/core";
 import { ensureDirectoryExists } from "~/utils";
 
 function quoteShellArg(value: string): string {
@@ -62,11 +62,11 @@ function levenshteinDistance(a: string, b: string): number {
 export function runOpen(store: ConfigStore, args: string[]): void {
   const name = args[0];
 
-  let editor: string | undefined = process.env.EDITOR;
+  let flagEditor: string | undefined;
   if (args[1]) {
     if (args[1] === "--editor" || args[1] === "-e") {
       if (args[2]) {
-        editor = args[2];
+        flagEditor = args[2];
       } else {
         console.error("Missing <editor> argument for 'open' command.");
         console.log("Usage: thyra open <name> --editor <editor>");
@@ -120,6 +120,12 @@ export function runOpen(store: ConfigStore, args: string[]): void {
     console.error(`Invalid folder path for alias "${name}".`);
     process.exit(1);
   }
+
+  const editor = resolveEditor({
+    flag: flagEditor,
+    project: entry.editor,
+    global: process.env.EDITOR,
+  });
 
   ensureDirectoryExists(entry.path);
   openInEditor(entry.path, editor);
